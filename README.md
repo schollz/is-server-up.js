@@ -1,2 +1,4 @@
-# pingjs
-JavaScript client side ping API.
+# Do these websites exist?
+
+[JSFiddle](https://jsfiddle.net/c7ajn3v2/)
+
