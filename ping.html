@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>each demo</title>
+  <title>Check if website exists</title>
   <style>
   .successPing {
     clear: left;
@@ -20,107 +20,60 @@
   }
   </style>
       <script>
-average = function(a) {
-  var r = {mean: 0, variance: 0, deviation: 0}, t = a.length;
-  for(var m, s = 0, l = t; l--; s += a[l]);
-  for(m = r.mean = s / t, l = t, s = 0; l--; s += Math.pow(a[l] - m, 2));
-  return r.deviation = Math.sqrt(r.variance = s / t), r;
+
+/// http://stackoverflow.com/questions/14764115/ajax-function-to-check-if-url-exists
+function isValidURL(url) {
+    var encodedURL = encodeURIComponent(url);
+    var isValid = false;
+
+    $.ajax({
+      url: "http://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20html%20where%20url%3D%22" + encodedURL + "%22&format=json",
+      type: "get",
+      async: false,
+      dataType: "json",
+      success: function(data) {
+        isValid = data.query.results != null;
+      },
+      error: function(){
+        isValid = false;
+      }
+    });
+
+    return isValid;
 }
 
-/**
- * Creates and loads an image element by url.
- * @param  {String} url
- * @return {Promise} promise that resolves to an image element or
- *                   fails to an Error.
- */
-var request_image = function(url) {
-    return new Promise(function(resolve, reject) {
-        var img = new Image();
-        img.onload = function() { resolve(img); };
-        img.onerror = function() { reject(url); };
-        img.src = url + '?random-no-cache=' + Math.floor((1 + Math.random()) * 0x10000).toString(16);
-    });
-};
-
-/**
- * Pings a url.
- * @param  {String} url
- * @param  {Number} multiplier - optional, factor to adjust the ping by.  0.3 works well for HTTP servers.
- * @return {Promise} promise that resolves to a ping (ms, float).
- */
-var ping = function(url, multiplier) {
-    return new Promise(function(resolve, reject) {
-        var start = (new Date()).getTime();
-        var response = function() { 
-            var delta = ((new Date()).getTime() - start);
-            delta *= (multiplier || 1);
-            resolve(delta); 
-        };
-        request_image(url).then(response).catch(response);
-        
-        // Set a timeout for max-pings, 5s.
-        setTimeout(function() { reject(Error('Timeout')); }, 5000);
-    });
-};
-
-
-
-
-
       </script>
-    <script>
-    var baselinePings = [];
-    var pingIndex = 0
-    for (i = 0; i < 5; i++) { 
-      ping('http://thisurldoesnotexist12398.com').then(function(delta) {
-          baselinePings[pingIndex] = delta;
-          pingIndex++;
-      }).catch(function(error) {
 
-      });
-    }
-
-
-
-    </script>
   <script src="https://code.jquery.com/jquery-1.10.2.js"></script>
-  <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" rel="stylesheet" integrity="sha256-MfvZlkHCEqatNoGiOXveE8FIwMzZg4W85qfrfIFBfYc= sha512-dTfge/zgoMYpP7QbHy4gWMEGsbsdZeCXz7irItjcC3sPUFtf0kuFbDz/ixG7ArTxmDjLXDmezHubeNikyKGVyQ==" crossorigin="anonymous">
-  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js" integrity="sha256-Sk3nkD6mLTMOF0EOpNtsIry+s1CsaqQC1rVLTAy+0yc= sha512-K1qjQ+NcF2TYO/eI3M6v8EiNYZfA95pQumfvcVrTHtwQVDG+aHRqLi/ETn2uB+1JqwYqVG3LIvdm9lj6imS/pQ==" crossorigin="anonymous"></script>
 </head>
 <body>
  
-To do list: <span>(click here to change)</span>
+<h1>Do these websites exist?</h1>
 <p><div class="website">http://www.google.com</div></p>
 <p><div class="website">http://www.yahoo.com</div></p>
 <p><div class="website">http://thiswebsitedoesnotexist123.com/</div></p>
-<p><div class="website">http://www.bing.com/about/</div></p>
+<p><div class="website">http://www.bing.com/</div></p>
+
 
 <script>
-console.log(baselinePings);
-var badPing = average(baselinePings).mean + 2 * average(baselinePings).deviation;
-console.log(badPing);
 $( document ).ready(function() {
+      setTimeout(function() {
+
   $( "div.website" ).each(function() {
     var ele = $( this );
-    try {
-    ping( ele.text() ).then(function(delta) {
-        if (delta < badPing) {
-//          ele.html('<span class="label label-danger label-as-badge">' + ele.text() + delta + '</span>');
-          ele.toggleClass( "failPing" );
-        } else {
-//          ele.html('<span class="label label-success label-as-badge">' + ele.text() + delta + '</span>');
-          ele.toggleClass( "successPing" );
-        }
-      }).catch(function(error) {
-          alert(String(error));
-      });
-    } catch(err) {
-      console.log(ele.text());
+    if (isValidURL(ele.text()) == true) {
+      ele.toggleClass("successPing");
+    } else {
+      ele.toggleClass( "failPing" );
     }
-
   });
+
+    }, 100);
+
 });
 </script>
  
+
+
 </body>
 </html>
